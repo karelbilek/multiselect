@@ -1,39 +1,11 @@
-package dialog
+package macos
 
 import (
-	"github.com/sqweek/dialog/cocoa"
+	"github.com/karelbilek/multiselect/macos/cocoa"
 )
-
-func (b *MsgBuilder) yesNo() bool {
-	return cocoa.YesNoDlg(b.Msg, b.Dlg.Title)
-}
-
-func (b *MsgBuilder) info() {
-	cocoa.InfoDlg(b.Msg, b.Dlg.Title)
-}
-
-func (b *MsgBuilder) error() {
-	cocoa.ErrorDlg(b.Msg, b.Dlg.Title)
-}
 
 func (b *FileBuilder) loadMultiple() ([]string, error) {
 	return b.run(false, true)
-}
-
-func (b *FileBuilder) load() (string, error) {
-	ss, err := b.run(false, false)
-	if len(ss) == 0 {
-		return "", err
-	}
-	return ss[0], err
-}
-
-func (b *FileBuilder) save() (string, error) {
-	ss, err := b.run(true, false)
-	if len(ss) == 0 {
-		return "", err
-	}
-	return ss[0], err
 }
 
 func (b *FileBuilder) run(save bool, multiple bool) ([]string, error) {
@@ -57,14 +29,6 @@ func (b *FileBuilder) run(save bool, multiple bool) ([]string, error) {
 	f, err := cocoa.FileDlg(save, b.Dlg.Title, exts, star, multiple, b.StartDir, b.StartFile)
 	if f == nil && err == nil {
 		return nil, ErrCancelled
-	}
-	return f, err
-}
-
-func (b *DirectoryBuilder) browse() (string, error) {
-	f, err := cocoa.DirDlg(b.Dlg.Title, b.StartDir)
-	if f == "" && err == nil {
-		return "", ErrCancelled
 	}
 	return f, err
 }
