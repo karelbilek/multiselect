@@ -14,7 +14,7 @@ var ErrCancelled = fmt.Errorf("cancelled by user")
 
 func Fileselect(title string, ext string, extDesc string) ([]string, error) {
 	if runtime.GOOS == "windows" {
-		ffs := []cfd.FileFilter{}
+		var ffs []cfd.FileFilter
 		if ext != "" {
 			ffs = []cfd.FileFilter{{
 				DisplayName: "All Files (*.*)",
