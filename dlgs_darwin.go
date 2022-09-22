@@ -16,15 +16,27 @@ func (b *MsgBuilder) error() {
 	cocoa.ErrorDlg(b.Msg, b.Dlg.Title)
 }
 
+func (b *FileBuilder) loadMultiple() ([]string, error) {
+	return b.run(false, true)
+}
+
 func (b *FileBuilder) load() (string, error) {
-	return b.run(false)
+	ss, err := b.run(false, false)
+	if len(ss) == 0 {
+		return "", err
+	}
+	return ss[0], err
 }
 
 func (b *FileBuilder) save() (string, error) {
-	return b.run(true)
+	ss, err := b.run(true, false)
+	if len(ss) == 0 {
+		return "", err
+	}
+	return ss[0], err
 }
 
-func (b *FileBuilder) run(save bool) (string, error) {
+func (b *FileBuilder) run(save bool, multiple bool) ([]string, error) {
 	star := false
 	var exts []string
 	for _, filt := range b.Filters {
@@ -42,9 +54,9 @@ func (b *FileBuilder) run(save bool) (string, error) {
 		** dialog, so if "*" is a possible extension we must always show all files. */
 		exts = nil
 	}
-	f, err := cocoa.FileDlg(save, b.Dlg.Title, exts, star, b.StartDir, b.StartFile)
-	if f == "" && err == nil {
-		return "", ErrCancelled
+	f, err := cocoa.FileDlg(save, b.Dlg.Title, exts, star, multiple, b.StartDir, b.StartFile)
+	if f == nil && err == nil {
+		return nil, ErrCancelled
 	}
 	return f, err
 }

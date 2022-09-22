@@ -7,8 +7,9 @@ package cocoa
 import "C"
 
 import (
-	"bytes"
 	"errors"
+	"fmt"
+	"strings"
 	"unsafe"
 )
 
@@ -57,28 +58,44 @@ func ErrorDlg(msg, title string) {
 	a.run()
 }
 
-const BUFSIZE = C.PATH_MAX
+const MAX_FILES = 2048
+const SINGLE_BUFSIZE = C.PATH_MAX
+const ALL_BUFSIZE = MAX_FILES * SINGLE_BUFSIZE
 
-func FileDlg(save bool, title string, exts []string, relaxExt bool, startDir string, filename string) (string, error) {
+func FileDlg(save bool, title string, exts []string, relaxExt, multiple bool, startDir string, filename string) ([]string, error) {
 	mode := C.LOADDLG
 	if save {
 		mode = C.SAVEDLG
 	}
-	return fileDlg(mode, title, exts, relaxExt, startDir, filename)
+	return fileDlg(mode, title, exts, relaxExt, multiple, startDir, filename)
 }
 
 func DirDlg(title string, startDir string) (string, error) {
-	return fileDlg(C.DIRDLG, title, nil, false, startDir, "")
+	ss, err := fileDlg(C.DIRDLG, title, nil, false, false, startDir, "")
+	if len(ss) == 0 {
+		return "", err
+	}
+	return ss[0], err
 }
 
-func fileDlg(mode int, title string, exts []string, relaxExt bool, startDir, filename string) (string, error) {
+func fileDlg(mode int, title string, exts []string, relaxExt, multiple bool, startDir, filename string) ([]string, error) {
 	p := C.FileDlgParams{
-		mode: C.int(mode),
-		nbuf: BUFSIZE,
+		mode:       C.int(mode),
+		max_files:  MAX_FILES,
+		single_buf: SINGLE_BUFSIZE,
 	}
-	p.buf = (*C.char)(C.malloc(BUFSIZE))
+
+	if multiple {
+		p.multiple = C.int(1)
+	}
+
+	written := (*C.size_t)(C.malloc(C.size_t(C.sizeof_size_t)))
+	defer C.free(unsafe.Pointer(written))
+	p.written = written
+
+	p.buf = (*C.char)(C.malloc(ALL_BUFSIZE))
 	defer C.free(unsafe.Pointer(p.buf))
-	buf := (*(*[BUFSIZE]byte)(unsafe.Pointer(p.buf)))[:]
+	buf := (*(*[ALL_BUFSIZE]byte)(unsafe.Pointer(p.buf)))[:]
 	if title != "" {
 		p.title = C.CString(title)
 		defer C.free(unsafe.Pointer(p.title))
@@ -90,6 +107,9 @@ func fileDlg(mode int, title string, exts []string, relaxExt bool, startDir, fil
 	if filename != "" {
 		p.filename = C.CString(filename)
 		defer C.free(unsafe.Pointer(p.filename))
+	}
+	if multiple {
+		p.multiple = 1
 	}
 	if len(exts) > 0 {
 		if len(exts) > 999 {
@@ -111,12 +131,18 @@ func fileDlg(mode int, title string, exts []string, relaxExt bool, startDir, fil
 	}
 	switch C.fileDlg(&p) {
 	case C.DLG_OK:
-		// casting to string copies the [about-to-be-freed] bytes
-		return string(buf[:bytes.Index(buf, []byte{0})]), nil
+		fmt.Println("OK")
+		s := string(buf[:(int)(*written)])
+		ss := strings.Split(s, string([]byte{0}))
+		return ss, nil
+	case C.DLG_TOOMANY:
+		return nil, errors.New("too many files selected")
 	case C.DLG_CANCEL:
-		return "", nil
+		fmt.Println("cancelled")
+
+		return nil, nil
 	case C.DLG_URLFAIL:
-		return "", errors.New("failed to get file-system representation for selected URL")
+		return nil, errors.New("failed to get file-system representation for selected URL")
 	}
 	panic("unhandled case")
 }

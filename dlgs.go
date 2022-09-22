@@ -112,6 +112,10 @@ func (b *FileBuilder) SetStartFile(startFile string) *FileBuilder {
 	return b
 }
 
+func (b *FileBuilder) LoadMultiple() ([]string, error) {
+	return b.loadMultiple()
+}
+
 // Load spawns the file selection dialog using the configured settings,
 // asking the user to select a single file. Returns ErrCancelled as the error
 // if the user cancels or closes the dialog.

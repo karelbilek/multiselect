@@ -111,7 +111,7 @@ DlgResult fileDlg(FileDlgParams* params) {
 	NSSavePanel* panel = [NSSavePanel savePanel];
 	if(![self runPanel:panel]) {
 		return DLG_CANCEL;
-	} else if(![[panel URL] getFileSystemRepresentation:self->params->buf maxLength:self->params->nbuf]) {
+	} else if(![[panel URL] getFileSystemRepresentation:self->params->buf maxLength:self->params->single_buf]) {
 		return DLG_URLFAIL;
 	}
 	return DLG_OK;
@@ -123,13 +123,40 @@ DlgResult fileDlg(FileDlgParams* params) {
 		[panel setCanChooseDirectories:YES];
 		[panel setCanChooseFiles:NO];
 	}
+
+	if (self->params->multiple == 1) {
+		[panel setAllowsMultipleSelection:YES];
+	}
+
 	if(![self runPanel:panel]) {
 		return DLG_CANCEL;
 	}
-	NSURL* url = [[panel URLs] objectAtIndex:0];
-	if(![url getFileSystemRepresentation:self->params->buf maxLength:self->params->nbuf]) {
-		return DLG_URLFAIL;
+
+	NSArray* urls = [panel URLs];
+
+	if ([urls count] > self->params->max_files) {
+		return DLG_TOOMANY;
 	}
+
+	char* bufp = self->params->buf;
+	size_t written = 0;
+
+	for (int i = 0; i < [urls count]; i++) {
+		NSURL* url = [urls objectAtIndex:i];
+		if(![url getFileSystemRepresentation:bufp maxLength:self->params->single_buf]) {
+			return DLG_URLFAIL;
+		}
+
+		size_t newLen = strlen(bufp);
+		bufp += (newLen + 1);
+		written += (newLen + 1);
+	}
+
+	if (written > 0) {
+		written -= 1;
+	}
+
+	*self->params->written = written;
 	return DLG_OK;
 }
 
