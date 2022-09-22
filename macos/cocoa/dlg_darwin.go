@@ -8,7 +8,6 @@ import "C"
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 	"unsafe"
 )
@@ -90,15 +89,12 @@ func fileDlg(mode int, title string, exts []string, relaxExt, multiple bool, sta
 	}
 	switch C.fileDlg(&p) {
 	case C.DLG_OK:
-		fmt.Println("OK")
 		s := string(buf[:(int)(*written)])
 		ss := strings.Split(s, string([]byte{0}))
 		return ss, nil
 	case C.DLG_TOOMANY:
 		return nil, errors.New("too many files selected")
 	case C.DLG_CANCEL:
-		fmt.Println("cancelled")
-
 		return nil, nil
 	case C.DLG_URLFAIL:
 		return nil, errors.New("failed to get file-system representation for selected URL")
