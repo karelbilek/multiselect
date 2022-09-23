@@ -15,7 +15,7 @@ var ErrCancelled = fmt.Errorf("cancelled by user")
 func Fileselect(title string, ext string, extDesc string) ([]string, error) {
 	if runtime.GOOS == "windows" {
 		var ffs []cfd.FileFilter
-		if ext != "" {
+		if ext == "" {
 			ffs = []cfd.FileFilter{{
 				DisplayName: "All Files (*.*)",
 				Pattern:     "*.*",
@@ -26,7 +26,10 @@ func Fileselect(title string, ext string, extDesc string) ([]string, error) {
 					DisplayName: extDesc,
 					Pattern:     "*." + ext,
 				},
-			}
+				{
+					DisplayName: "All Files (*.*)",
+					Pattern:     "*.*",
+				}}
 		}
 		results, err := cfdutil.ShowOpenMultipleFilesDialog(cfd.DialogConfig{
 			Title:            title,
