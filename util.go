@@ -44,8 +44,8 @@ func Fileselect(title string, ext string, extDesc string) ([]string, error) {
 	if runtime.GOOS == "darwin" {
 		df := macos.File().Title(title)
 		if ext != "" {
-			df.Filter(extDesc, ext)
-			//df.Filter("All files", "*")
+			//df.Filter(extDesc, ext)
+			df.Filter("All files", "*")
 		}
 		results, err := df.LoadMultiple()
 		if errors.Is(err, macos.ErrCancelled) {
