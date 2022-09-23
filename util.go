@@ -23,10 +23,6 @@ func Fileselect(title string, ext string, extDesc string) ([]string, error) {
 		} else {
 			ffs = []cfd.FileFilter{
 				{
-					DisplayName: "All Files (*.*)",
-					Pattern:     "*.*",
-				},
-				{
 					DisplayName: extDesc,
 					Pattern:     "*." + ext,
 				},
