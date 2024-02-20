@@ -7,3 +7,5 @@ Copyright (c) 2019 Harry Phillips
 Copyright (c) 2022 Karel Bilek
 
 See example/simple
+
+This package is archived; I will try to move all functionality back to https://github.com/sqweek/dialog through PRs
