@@ -8,4 +8,4 @@ Copyright (c) 2022 Karel Bilek
 
 See example/simple
 
-This package is archived; I will try to move all functionality back to https://github.com/sqweek/dialog through PRs
+Originally I wanted to move all functionality to https://github.com/sqweek/dialog through PRs, but it was stuck on something. You are welcome to add PR for linux here.
